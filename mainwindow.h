@@ -24,6 +24,8 @@ private slots:
 
     void on_loadPushButton_clicked();
 
+    void on_destBrowsePushButton_clicked();
+
     void on_mergePushButton_clicked();
 
 private:
