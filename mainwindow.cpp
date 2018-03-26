@@ -8,6 +8,10 @@
 
 #include <QMessageBox>
 
+#ifdef _WIN32
+  #include <windows.h>
+#endif
+
 #include "libxl.h"
 
 using namespace libxl;
@@ -103,18 +107,36 @@ void MainWindow::on_destBrowsePushButton_clicked()
 
 void MainWindow::on_mergePushButton_clicked()
 {
+    if (this->ui->destFilePathLineEdit->text().isEmpty()) {
+        QMessageBox::critical(this, QString::fromLocal8Bit("保存"), QString::fromLocal8Bit("请选择要保存的结果文件的路径！") );
+    }
+
+    QStringList excelFileList;
     for (int i = 0; i < ui->listWidget->count(); i++) {
         QListWidgetItem *listWidgetItem = ui->listWidget->item(i);
+        if (listWidgetItem->checkState() == Qt::Unchecked) {
+            continue;
+        }
         QVariant itemData = listWidgetItem->data(Qt::UserRole);
         //QString excelFile = itemData.value<QString>();
         QString excelFile = itemData.toString();
+        excelFileList.append(excelFile);
         printf("Excel File: %s\n", excelFile.toStdString().c_str());
     }
 
+    if (excelFileList.size() <= 0) {
+        QMessageBox::Warning(this, QString::fromLocal8Bit("合并"), QString::fromLocal8Bit("没有可合并的文件，请选择需要合并的文件！"));
+        return;
+    }
+
+    Book* sourceBook = xlCreateBook();
+    Sheet* sourceSheet = sourceBook->loadSheet(excelFileList.at(0).toStdString().c_str(), 0);
+
+    sourceSheet->readNum()
 
     Book* book = xlCreateBook(); // use xlCreateXMLBook() for working with xlsx files
 
-    Sheet* sheet = book->addSheet("Sheet1");
+    Sheet* sheet = book->addSheet("基本每股收益");
 
     sheet->writeStr(2, 1, "Hello, World !");
     sheet->writeNum(4, 1, 1000);
