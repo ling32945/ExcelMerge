@@ -33,18 +33,22 @@ HEADERS += \
 FORMS += \
         mainwindow.ui
 
+
+LIBXL_LIB_PATH = $$PWD/../../Libxl
+INCLUDEPATH += $$LIBXL_LIB_PATH/include_cpp
+
 win32 {
+    LIBS += -L$$LIBXL_LIB_PATH/lib/libxl.lib
 
-    INCLUDEPATH = ../../../include_cpp
-    LIBS += ../../../lib/libxl.lib
-
-    QMAKE_POST_LINK +=$$quote(cmd /c copy /y ..\..\..\bin\libxl.dll .)
+    DEPENDPATH += $$LIBXL_LIB_PATH/bin
+    #QMAKE_POST_LINK += $$quote(cmd echo $${LIBXL_LIB_PATH})
+    QMAKE_POST_LINK +=$$quote(cmd /c copy /y ..\..\Libxl\bin\libxl.dll .)
 
 } else:macx {
 
-    LIBXL_LIB_PATH = $$PWD/../../Libxl
+    #LIBXL_LIB_PATH = $$PWD/../../Libxl
 
-    INCLUDEPATH += $$LIBXL_LIB_PATH/include_cpp
+    #INCLUDEPATH += $$LIBXL_LIB_PATH/include_cpp
     LIBS += -framework LibXL
 
     QMAKE_LFLAGS += -F$$LIBXL_LIB_PATH/
