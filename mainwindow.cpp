@@ -133,93 +133,116 @@ void MainWindow::on_mergePushButton_clicked()
     }
 
     QString testC;
+    Book* resultBook = xlCreateBook(); // use xlCreateXMLBook() for working with xlsx files
+    Sheet* EPSSheet = resultBook->addSheet(L"基本每股收益");
+    Sheet* netProfitSheet = resultBook->addSheet(L"净利润");
+    Sheet* netProfitGrowthRateSheet = resultBook->addSheet(L"净利润同比增长率");
+    Sheet* nonNetProfitSheet = resultBook->addSheet(L"扣非净利润");
+    Sheet* nonNetProfitGrowthRateSheet = resultBook->addSheet(L"扣非净利润同比增长率");
 
-    Book* sourceBook = xlCreateBook();
-    //if (sourceBook->load(excelFileList.at(0).toStdString().c_str())) {
-    if (sourceBook->load(excelFileList.at(0).toStdWString().c_str()) ) {
-        Sheet* sourceSheet = sourceBook->getSheet(0);
-        if (sourceSheet) {
-            for (int row = sourceSheet->firstRow(); row < sourceSheet->lastRow(); ++row) {
-                for (int col = sourceSheet->firstCol(); col < sourceSheet->lastCol(); ++col) {
-                    CellType cellType = sourceSheet->cellType(row, col);
-                    std::wcout << "(" << row << ", " << col << ") = ";
-                    if (sourceSheet->isFormula(row, col)) {
-                        const wchar_t* s = sourceSheet->readFormula(row, col);
-                        std::wcout << (s ? s : L"null") << " [formula]";
+    for (int i = 0; i < excelFileList.size(); ++i) {
+        QFileInfo excelFileInfo(excelFileList.at(i));
+        if (!excelFileInfo.isReadable()) {
+            QMessageBox::warning(this, QString::fromLocal8Bit("文件不可读"), QString::fromLocal8Bit("Excel 文件\n") + excelFileList.at(i) + QString::fromLocal8Bit("\n不可读！"));
+            continue;
+        }
+
+        QString stockCode = excelFileInfo.baseName().left(6);
+
+        // Read Excel
+        Book* sourceBook = xlCreateBook();
+        if (sourceBook->load(excelFileList.at(0).toStdWString().c_str()) ) {
+            Sheet* sourceSheet = sourceBook->getSheet(0);
+            if (sourceSheet) {
+                // write the stock code
+                EPSSheet->writeStr(2, 0, stockCode.toStdWString().c_str());
+                for (int row = sourceSheet->firstRow(); row < sourceSheet->lastRow(); ++row) {
+                    for (int col = sourceSheet->firstCol(); col < sourceSheet->lastCol(); ++col) {
+                        CellType cellType = sourceSheet->cellType(row, col);
+                        std::wcout << "(" << row << ", " << col << ") = ";
+                        if (sourceSheet->isFormula(row, col)) {
+                            const wchar_t* s = sourceSheet->readFormula(row, col);
+                            std::wcout << (s ? s : L"null") << " [formula]";
 //                        const char* s = sourceSheet->readFormula(row, col);
 //                        std::cout << (s ? s : "null") << " [formula]";
-                    }
-                    else {
-                        switch(cellType) {
-                            case CELLTYPE_EMPTY: std::wcout << "[empty]"; break;
-                            case CELLTYPE_NUMBER:
-                            {
-                                double d = sourceSheet->readNum(row, col);
-                                std::wcout << d << " [number]";
-                                break;
-                            }
-                            case CELLTYPE_STRING:
-                            {
-                                const wchar_t* s = sourceSheet->readStr(row, col);
-                                std::wcout << (s ? s : L"null") << " [string]";
-//                                const char* s = sourceSheet->readStr(row, col);
-                                if (row == 1 && col == 0) {
-                                    testC = QString::fromStdWString(s);
-                                    //QString msg = QString(QLatin1String(s)).toLatin1();
-                                    qDebug() << "Row: " << row << " - Col: " << row << " --- " << testC;
-                                    //qDebug() << "Row: " << row << " - Col: " << row << " --- " << msg;
-                                }
-                                const char* t = "小红";
-                                std::cout << t;
-                                break;
-                            }
-                            case CELLTYPE_BOOLEAN:
-                            {
-                                bool b = sourceSheet->readBool(row, col);
-                                std::wcout << (b ? "true" : "false") << " [boolean]";
-//                                std::cout << (b ? "true" : "false") << " [boolean]";
-                                break;
-                            }
-                            case CELLTYPE_BLANK: std::wcout << "[blank]"; break;
-                            case CELLTYPE_ERROR: std::wcout << "[error]"; break;
                         }
+                        else {
+                            switch(cellType) {
+                                case CELLTYPE_EMPTY: std::wcout << "[empty]"; break;
+                                case CELLTYPE_NUMBER:
+                                {
+                                    double d = sourceSheet->readNum(row, col);
+                                    std::wcout << d << " [number]";
+                                    break;
+                                }
+                                case CELLTYPE_STRING:
+                                {
+                                    const wchar_t* s = sourceSheet->readStr(row, col);
+                                    std::wcout << (s ? s : L"null") << " [string]";
+//                                const char* s = sourceSheet->readStr(row, col);
+                                    if (row == 1 && col == 0) {
+                                        testC = QString::fromStdWString(s);
+                                        //QString msg = QString(QLatin1String(s)).toLatin1();
+                                        qDebug() << "Row: " << row << " - Col: " << row << " --- " << testC;
+                                        //qDebug() << "Row: " << row << " - Col: " << row << " --- " << msg;
+                                    }
+                                    break;
+                                }
+                                case CELLTYPE_BOOLEAN:
+                                {
+                                    bool b = sourceSheet->readBool(row, col);
+                                    std::wcout << (b ? "true" : "false") << " [boolean]";
+//                                    std::cout << (b ? "true" : "false") << " [boolean]";
+                                    break;
+                                }
+                                case CELLTYPE_BLANK: std::wcout << "[blank]"; break;
+                                case CELLTYPE_ERROR: std::wcout << "[error]"; break;
+                            }
+                        }
+                        std::wcout << std::endl;
                     }
-                    std::wcout << std::endl;
                 }
             }
+            else {
+                const char* sheetError = sourceBook->errorMessage();
+                qDebug() << "Error!!! " << sheetError;
+            }
         }
+        else {
+            const char* errorMsg = sourceBook->errorMessage();
+            qDebug() << "Error!!! " << errorMsg;
+        }
+        sourceBook->release();
     }
-    sourceBook->release();
 
-    Book* book = xlCreateBook(); // use xlCreateXMLBook() for working with xlsx files
 
-    Sheet* sheet = book->addSheet(L"基本每股收益");
+//    Sheet* sheet = book->addSheet(L"基本每股收益");
+//
+//    printf("TestC %s", testC.toStdString().c_str());
+//
+//    sheet->writeStr(2, 1, L"Hello, World !");
+//    sheet->writeStr(2, 2, testC.toStdWString().c_str());
+//
+//    sheet->writeStr(3,1, L"中文");
+//    sheet->writeNum(4, 1, 1000);
+//    sheet->writeNum(5, 1, 2000);
+//
+//    Font* font = book->addFont();
+//    font->setColor(COLOR_RED);
+//    font->setBold(true);
+//    Format* boldFormat = book->addFormat();
+//    boldFormat->setFont(font);
+//    sheet->writeFormula(6, 1, L"SUM(B5:B6)", boldFormat);
+//
+//    Format* dateFormat = book->addFormat();
+//    dateFormat->setNumFormat(NUMFORMAT_DATE);
+//    sheet->writeNum(8, 1, book->datePack(2011, 7, 20), dateFormat);
+//
+//    sheet->setCol(1, 1, 12);
 
-    printf("TestC %s", testC.toStdString().c_str());
+    resultBook->save(L"report.xls");
 
-    sheet->writeStr(2, 1, L"Hello, World !");
-    sheet->writeStr(2, 2, testC.toStdWString().c_str());
-
-    sheet->writeStr(3,1, L"中文");
-    sheet->writeNum(4, 1, 1000);
-    sheet->writeNum(5, 1, 2000);
-
-    Font* font = book->addFont();
-    font->setColor(COLOR_RED);
-    font->setBold(true);
-    Format* boldFormat = book->addFormat();
-    boldFormat->setFont(font);
-    sheet->writeFormula(6, 1, L"SUM(B5:B6)", boldFormat);
-
-    Format* dateFormat = book->addFormat();
-    dateFormat->setNumFormat(NUMFORMAT_DATE);
-    sheet->writeNum(8, 1, book->datePack(2011, 7, 20), dateFormat);
-
-    sheet->setCol(1, 1, 12);
-
-    book->save(L"report.xls");
-
-    book->release();
+    resultBook->release();
 
     //ui->pushButton->setText("Please wait...");
     //ui->pushButton->setEnabled(false);

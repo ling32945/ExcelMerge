@@ -37,22 +37,18 @@ FORMS += \
 LIBXL_LIB_PATH = $$PWD/../../Libxl
 INCLUDEPATH += $$LIBXL_LIB_PATH/include_cpp
 
-win32 {
-    LIBS += -L$$LIBXL_LIB_PATH/lib/libxl.lib
-
-    #DEPENDPATH += $$LIBXL_LIB_PATH/bin
-    #QMAKE_POST_LINK += $$quote(cmd echo $${LIBXL_LIB_PATH})
-    QMAKE_POST_LINK +=$$quote(cmd /c copy /y ..\..\Libxl\bin\libxl.dll .)
-
-} else:macx {
-
-    #LIBXL_LIB_PATH = $$PWD/../../Libxl
-
-    #INCLUDEPATH += $$LIBXL_LIB_PATH/include_cpp
+macx {
     LIBS += -framework LibXL
 
     #DEPENDPATH += $$LIBXL_LIB_PATH
     QMAKE_LFLAGS += -F$$LIBXL_LIB_PATH/
     #QMAKE_POST_LINK +=$$quote(mkdir $${TARGET}.app/Contents/Frameworks;cp -R $${LIBXL_LIB_PATH}/LibXL.framework $${TARGET}.app/Contents/Frameworks/)
 }
+else{
+    LIBS += -L$$LIBXL_LIB_PATH/lib64/ -llibxl
+    #DEPENDPATH += $$LIBXL_LIB_PATH/bin64
+    #QMAKE_POST_LINK += $$quote(cmd echo $${PWD})
+    QMAKE_POST_LINK +=$$quote(cmd /c copy /y ..\..\Libxl\bin64\libxl.dll .\debug)
+}
+
 
