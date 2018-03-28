@@ -1,6 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#ifndef _UNICODE
+#define _UNICODE
+#endif
+
 #include <QMainWindow>
 
 namespace Ui {

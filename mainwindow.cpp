@@ -135,18 +135,19 @@ void MainWindow::on_mergePushButton_clicked()
     QString testC;
 
     Book* sourceBook = xlCreateBook();
-    if (sourceBook->load(excelFileList.at(0).toStdString().c_str())) {
+    //if (sourceBook->load(excelFileList.at(0).toStdString().c_str())) {
+    if (sourceBook->load(excelFileList.at(0).toStdWString().c_str()) ) {
         Sheet* sourceSheet = sourceBook->getSheet(0);
         if (sourceSheet) {
             for (int row = sourceSheet->firstRow(); row < sourceSheet->lastRow(); ++row) {
                 for (int col = sourceSheet->firstCol(); col < sourceSheet->lastCol(); ++col) {
                     CellType cellType = sourceSheet->cellType(row, col);
-                    std::cout << "(" << row << ", " << col << ") = ";
+                    std::wcout << "(" << row << ", " << col << ") = ";
                     if (sourceSheet->isFormula(row, col)) {
-//                        const wchar_t* s = sheet->readFormula(row, col);
-//                        std::wcout << (s ? s : L"null") << " [formula]";
-                        const char* s = sourceSheet->readFormula(row, col);
-                        std::cout << (s ? s : "null") << " [formula]";
+                        const wchar_t* s = sourceSheet->readFormula(row, col);
+                        std::wcout << (s ? s : L"null") << " [formula]";
+//                        const char* s = sourceSheet->readFormula(row, col);
+//                        std::cout << (s ? s : "null") << " [formula]";
                     }
                     else {
                         switch(cellType) {
@@ -159,17 +160,15 @@ void MainWindow::on_mergePushButton_clicked()
                             }
                             case CELLTYPE_STRING:
                             {
-//                                const wchar_t* s = sourceSheet->readStr(row, col);
-//                                std::wcout << (s ? s : L"null") << " [string]";
-                                const char* s = sourceSheet->readStr(row, col);
+                                const wchar_t* s = sourceSheet->readStr(row, col);
+                                std::wcout << (s ? s : L"null") << " [string]";
+//                                const char* s = sourceSheet->readStr(row, col);
                                 if (row == 1 && col == 0) {
-                                    testC = QString::fromStdString(s);
-                                    QString msg = QString(QLatin1String(s)).toLatin1();
+                                    testC = QString::fromStdWString(s);
+                                    //QString msg = QString(QLatin1String(s)).toLatin1();
                                     qDebug() << "Row: " << row << " - Col: " << row << " --- " << testC;
-                                    qDebug() << "Row: " << row << " - Col: " << row << " --- " << msg;
+                                    //qDebug() << "Row: " << row << " - Col: " << row << " --- " << msg;
                                 }
-                                qDebug() << "中文测试： " << QString::fromLocal8Bit(s);
-                                std::cout << (s ? (s) : "null") << " [string字符]";
                                 const char* t = "小红";
                                 std::cout << t;
                                 break;
@@ -177,8 +176,8 @@ void MainWindow::on_mergePushButton_clicked()
                             case CELLTYPE_BOOLEAN:
                             {
                                 bool b = sourceSheet->readBool(row, col);
-//                                std::wcout << (b ? "true" : "false") << " [boolean]";
-                                std::cout << (b ? "true" : "false") << " [boolean]";
+                                std::wcout << (b ? "true" : "false") << " [boolean]";
+//                                std::cout << (b ? "true" : "false") << " [boolean]";
                                 break;
                             }
                             case CELLTYPE_BLANK: std::wcout << "[blank]"; break;
@@ -194,14 +193,14 @@ void MainWindow::on_mergePushButton_clicked()
 
     Book* book = xlCreateBook(); // use xlCreateXMLBook() for working with xlsx files
 
-    Sheet* sheet = book->addSheet("基本每股收益");
+    Sheet* sheet = book->addSheet(L"基本每股收益");
 
     printf("TestC %s", testC.toStdString().c_str());
 
-    sheet->writeStr(2, 1, "Hello, World !");
-    sheet->writeStr(2, 2, testC.toStdString().c_str());
+    sheet->writeStr(2, 1, L"Hello, World !");
+    sheet->writeStr(2, 2, testC.toStdWString().c_str());
 
-    sheet->writeStr(3,1, "中文");
+    sheet->writeStr(3,1, L"中文");
     sheet->writeNum(4, 1, 1000);
     sheet->writeNum(5, 1, 2000);
 
@@ -210,7 +209,7 @@ void MainWindow::on_mergePushButton_clicked()
     font->setBold(true);
     Format* boldFormat = book->addFormat();
     boldFormat->setFont(font);
-    sheet->writeFormula(6, 1, "SUM(B5:B6)", boldFormat);
+    sheet->writeFormula(6, 1, L"SUM(B5:B6)", boldFormat);
 
     Format* dateFormat = book->addFormat();
     dateFormat->setNumFormat(NUMFORMAT_DATE);
@@ -218,7 +217,7 @@ void MainWindow::on_mergePushButton_clicked()
 
     sheet->setCol(1, 1, 12);
 
-    book->save("report.xls");
+    book->save(L"report.xls");
 
     book->release();
 
