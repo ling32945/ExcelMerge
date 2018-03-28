@@ -6,7 +6,10 @@
 #include <QSettings>
 #include <QProcess>
 
+#include <QDebug>
 #include <QMessageBox>
+
+#include <iostream>
 
 #ifdef _WIN32
   #include <windows.h>
@@ -125,20 +128,80 @@ void MainWindow::on_mergePushButton_clicked()
     }
 
     if (excelFileList.size() <= 0) {
-        QMessageBox::Warning(this, QString::fromLocal8Bit("合并"), QString::fromLocal8Bit("没有可合并的文件，请选择需要合并的文件！"));
+        QMessageBox::warning(this, QString::fromLocal8Bit("合并"), QString::fromLocal8Bit("没有可合并的文件，请选择需要合并的文件！"));
         return;
     }
 
-    Book* sourceBook = xlCreateBook();
-    Sheet* sourceSheet = sourceBook->loadSheet(excelFileList.at(0).toStdString().c_str(), 0);
+    QString testC;
 
-    sourceSheet->readNum()
+    Book* sourceBook = xlCreateBook();
+    if (sourceBook->load(excelFileList.at(0).toStdString().c_str())) {
+        Sheet* sourceSheet = sourceBook->getSheet(0);
+        if (sourceSheet) {
+            for (int row = sourceSheet->firstRow(); row < sourceSheet->lastRow(); ++row) {
+                for (int col = sourceSheet->firstCol(); col < sourceSheet->lastCol(); ++col) {
+                    CellType cellType = sourceSheet->cellType(row, col);
+                    std::cout << "(" << row << ", " << col << ") = ";
+                    if (sourceSheet->isFormula(row, col)) {
+//                        const wchar_t* s = sheet->readFormula(row, col);
+//                        std::wcout << (s ? s : L"null") << " [formula]";
+                        const char* s = sourceSheet->readFormula(row, col);
+                        std::cout << (s ? s : "null") << " [formula]";
+                    }
+                    else {
+                        switch(cellType) {
+                            case CELLTYPE_EMPTY: std::wcout << "[empty]"; break;
+                            case CELLTYPE_NUMBER:
+                            {
+                                double d = sourceSheet->readNum(row, col);
+                                std::wcout << d << " [number]";
+                                break;
+                            }
+                            case CELLTYPE_STRING:
+                            {
+//                                const wchar_t* s = sourceSheet->readStr(row, col);
+//                                std::wcout << (s ? s : L"null") << " [string]";
+                                const char* s = sourceSheet->readStr(row, col);
+                                if (row == 1 && col == 0) {
+                                    testC = QString::fromStdString(s);
+                                    QString msg = QString(QLatin1String(s)).toLatin1();
+                                    qDebug() << "Row: " << row << " - Col: " << row << " --- " << testC;
+                                    qDebug() << "Row: " << row << " - Col: " << row << " --- " << msg;
+                                }
+                                qDebug() << "中文测试： " << QString::fromLocal8Bit(s);
+                                std::cout << (s ? (s) : "null") << " [string字符]";
+                                const char* t = "小红";
+                                std::cout << t;
+                                break;
+                            }
+                            case CELLTYPE_BOOLEAN:
+                            {
+                                bool b = sourceSheet->readBool(row, col);
+//                                std::wcout << (b ? "true" : "false") << " [boolean]";
+                                std::cout << (b ? "true" : "false") << " [boolean]";
+                                break;
+                            }
+                            case CELLTYPE_BLANK: std::wcout << "[blank]"; break;
+                            case CELLTYPE_ERROR: std::wcout << "[error]"; break;
+                        }
+                    }
+                    std::wcout << std::endl;
+                }
+            }
+        }
+    }
+    sourceBook->release();
 
     Book* book = xlCreateBook(); // use xlCreateXMLBook() for working with xlsx files
 
     Sheet* sheet = book->addSheet("基本每股收益");
 
+    printf("TestC %s", testC.toStdString().c_str());
+
     sheet->writeStr(2, 1, "Hello, World !");
+    sheet->writeStr(2, 2, testC.toStdString().c_str());
+
+    sheet->writeStr(3,1, "中文");
     sheet->writeNum(4, 1, 1000);
     sheet->writeNum(5, 1, 2000);
 
