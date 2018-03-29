@@ -42,7 +42,7 @@ macx {
 
     #DEPENDPATH += $$LIBXL_LIB_PATH
     QMAKE_LFLAGS += -F$$LIBXL_LIB_PATH/
-    #QMAKE_POST_LINK +=$$quote(mkdir $${TARGET}.app/Contents/Frameworks;cp -R $${LIBXL_LIB_PATH}/LibXL.framework $${TARGET}.app/Contents/Frameworks/)
+    QMAKE_POST_LINK +=$$quote(mkdir $${TARGET}.app/Contents/Frameworks;cp -R $${LIBXL_LIB_PATH}/LibXL.framework $${TARGET}.app/Contents/Frameworks/)
 }
 else{
     LIBS += -L$$LIBXL_LIB_PATH/lib64/ -llibxl

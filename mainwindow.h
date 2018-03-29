@@ -7,6 +7,8 @@
 
 #include <QMainWindow>
 
+#include <QDate>
+
 namespace Ui {
 class MainWindow;
 }
@@ -20,10 +22,6 @@ public:
     ~MainWindow();
 
 private slots:
-    void writeSettings(QString group, QString key, QString value);
-
-    void readSettings(QString group, QString key, QString &value);
-
     void on_browsePushButton_clicked();
 
     void on_loadPushButton_clicked();
@@ -34,6 +32,12 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+
+    void writeSettings(QString group, QString key, QString value);
+
+    void readSettings(QString group, QString key, QString &value);
+
+    QStringList generateDateList(QDate startDate, QDate endDate);
 };
 
 #endif // MAINWINDOW_H
