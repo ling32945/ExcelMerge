@@ -20,7 +20,8 @@
 
 using namespace libxl;
 
-QRegExp rxNum("^(-?\\d+)(\\.\\d+)?%?$");
+//QRegExp rxNum("^(-?\\d+)(\\.\\d+)?%?$");
+QRegExp rxNum("^(-?\\d+)(\\.\\d+)?$");
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -172,6 +173,10 @@ void MainWindow::on_mergePushButton_clicked()
 
     Book* resultBook = xlCreateBook(); // use xlCreateXMLBook() for working with xlsx files
 
+    //xlBookSetKey(resultBook, "Halil Kural", "windows-2723210a07c4e90162b26966a8jcdboe");
+    resultBook->setKey(L"Halil Kural", L"mac-2723210a07c4e90162b26966a8jcdboe");
+
+
     Sheet* EPSSheet                         = resultBook->addSheet(L"基本每股收益");
     Sheet* netProfitSheet                   = resultBook->addSheet(L"净利润");
     Sheet* netProfitGrowthRateSheet         = resultBook->addSheet(L"净利润同比增长率");
@@ -191,6 +196,22 @@ void MainWindow::on_mergePushButton_clicked()
     Sheet* netProfitMarginSheet             = resultBook->addSheet(L"销售净利润");
 
     EPSSheet->writeStr(1, 0, L"股票\\时间");
+    netProfitSheet->writeStr(1, 0, L"股票\\时间");
+    netProfitGrowthRateSheet->writeStr(1, 0, L"股票\\时间");
+    nonNetProfitSheet->writeStr(1, 0, L"股票\\时间");
+    nonNetProfitGrowthRateSheet->writeStr(1, 0, L"股票\\时间");
+    grossRevenueSheet->writeStr(1, 0, L"股票\\时间");
+    grossRevenueGrowthRateSheet->writeStr(1, 0, L"股票\\时间");
+    BPSSheet->writeStr(1, 0, L"股票\\时间");
+    ROESheet->writeStr(1, 0, L"股票\\时间");
+    ROEDitionSheet->writeStr(1, 0, L"股票\\时间");
+    debtAssetRatioSheet->writeStr(1, 0, L"股票\\时间");
+    shareCapitalReserveSheet->writeStr(1, 0, L"股票\\时间");
+    retainedEarningsPerShareSheet->writeStr(1, 0, L"股票\\时间");
+    OCFPSSheet->writeStr(1, 0, L"股票\\时间");
+    grossProfitRatioSheet->writeStr(1, 0, L"股票\\时间");
+    depositTurnoverRatioSheet->writeStr(1, 0, L"股票\\时间");
+    netProfitMarginSheet->writeStr(1, 0, L"股票\\时间");
 
     QDate startDate(2006, 11, 1);
     //QDate endDate = QDate::currentDate();
@@ -201,13 +222,30 @@ void MainWindow::on_mergePushButton_clicked()
 
     for (int i = dateList.size() - 1; i >= 0; --i) {
         EPSSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        netProfitSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        netProfitGrowthRateSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        nonNetProfitSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        nonNetProfitGrowthRateSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        grossRevenueSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        grossRevenueGrowthRateSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        BPSSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        ROESheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        ROEDitionSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        debtAssetRatioSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        shareCapitalReserveSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        retainedEarningsPerShareSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        OCFPSSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        grossProfitRatioSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        depositTurnoverRatioSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+        netProfitMarginSheet->writeStr(1, dateList.size() - i, dateList.at(i).toStdWString().c_str());
+
         colIndexMap[dateList.at(i)] = dateList.size() - i;
         //qDebug() << dateList.at(i) << " - " << colIndexMap[dateList.at(i)];
     }
 
     for (int i = 0; i < excelFileList.size(); ++i) {
-        if (i > 0)
-            break;
+//        if (i > 0)
+//            break;
 
         QFileInfo excelFileInfo(excelFileList.at(i));
         if (!excelFileInfo.isReadable()) {
@@ -219,6 +257,7 @@ void MainWindow::on_mergePushButton_clicked()
 
         // Read Excel
         Book* sourceBook = xlCreateBook();
+        sourceBook->setKey(L"Halil Kural", L"mac-2723210a07c4e90162b26966a8jcdboe");
         if (sourceBook->load(excelFileList.at(0).toStdWString().c_str()) ) {
             Sheet* sourceSheet = sourceBook->getSheet(0);
             if (sourceSheet) {
@@ -229,27 +268,82 @@ void MainWindow::on_mergePushButton_clicked()
                     qDebug() << "Row No. " << row;
 
                     Sheet* operatorSheet;
-                    if (row == 0) {
-                        continue;
-                    }
-                    else if (row == 1) {
-                        1;
-                    }
-                    else if (row == 2) {
-                        operatorSheet = EPSSheet;
-                    }
-                    else if (row == 3) {
-                        operatorSheet = netProfitSheet;
+                    int curRow = 0;
+                    if (row < 2) {
+                        if (row == 0) {
+                            continue;
+                        }
                     }
                     else {
-                        break;
+                        if (row == 2) {
+                            operatorSheet = EPSSheet;
+                        }
+                        else if (row == 3) {
+                            operatorSheet = netProfitSheet;
+                        }
+                        else if (row == 4) {
+                            operatorSheet = netProfitGrowthRateSheet;
+                        }
+                        else if (row == 5) {
+                            operatorSheet = nonNetProfitSheet;
+                        }
+                        else if (row == 6) {
+                            operatorSheet = nonNetProfitGrowthRateSheet;
+                        }
+                        else if (row == 7) {
+                            operatorSheet = grossRevenueSheet;
+                        }
+                        else if (row == 8) {
+                            operatorSheet = grossRevenueGrowthRateSheet;
+                        }
+                        else if (row == 9) {
+                            operatorSheet = BPSSheet;
+                        }
+                        else if (row == 10) {
+                            operatorSheet = ROESheet;
+                        }
+                        else if (row == 11) {
+                            operatorSheet = ROEDitionSheet;
+                            break;
+                        }
+                        else if (row == 12) {
+                            operatorSheet = debtAssetRatioSheet;
+                            break;
+                        }
+                        else if (row == 13) {
+                            operatorSheet = shareCapitalReserveSheet;
+                            break;
+                        }
+                        else if (row == 14) {
+                            operatorSheet = retainedEarningsPerShareSheet;
+                            break;
+                        }
+                        else if (row == 15) {
+                            operatorSheet = OCFPSSheet;
+                            break;
+                        }
+                        else if (row == 16) {
+                            operatorSheet = grossProfitRatioSheet;
+                            break;
+                        }
+                        else if (row == 17) {
+                            operatorSheet = depositTurnoverRatioSheet;
+                            break;
+                        }
+                        else if (row == 18) {
+                            operatorSheet = netProfitMarginSheet;
+                            break;
+                        }
+                        else {
+                            break;
+                        }
+
+                        curRow = operatorSheet->lastRow();
+                        qDebug() << "Current Row NO. " << curRow;
+
+                        // write the stock code
+                        operatorSheet->writeStr(curRow, 0, stockCode.toStdWString().c_str());
                     }
-
-                    int curRow = operatorSheet->lastRow();
-                    qDebug() << "Current Row NO. " << curRow;
-
-                    // write the stock code
-                    operatorSheet->writeStr(curRow, 0, stockCode.toStdWString().c_str());
 
                     for (int col = sourceSheet->firstCol(); col < sourceSheet->lastCol(); ++col) {
                         if (col == 0) {
