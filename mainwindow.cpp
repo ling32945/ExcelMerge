@@ -142,7 +142,7 @@ void MainWindow::on_destBrowsePushButton_clicked()
     }
 
     QString dialogTitle = QString::fromLocal8Bit("保存");
-    QString fileName = QFileDialog::getSaveFileName(this, dialogTitle, oldFilePath, tr("Excel文件 (*.xls *.xlsx)"));
+    QString fileName = QFileDialog::getSaveFileName(this, dialogTitle, oldFilePath,  QString::fromLocal8Bit("Excel 工作簿 (*.xls *.xlsx)"));
     this->ui->destFilePathLineEdit->setText(fileName);
 }
 
