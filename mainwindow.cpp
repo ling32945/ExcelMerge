@@ -173,8 +173,7 @@ void MainWindow::on_mergePushButton_clicked()
 
     Book* resultBook = xlCreateBook(); // use xlCreateXMLBook() for working with xlsx files
 
-    //xlBookSetKey(resultBook, "Halil Kural", "windows-2723210a07c4e90162b26966a8jcdboe");
-    resultBook->setKey(L"Halil Kural", L"mac-2723210a07c4e90162b26966a8jcdboe");
+    resultBook->setKey(L"jae", L"windows-202220060ec5e50766b8646dacy5z7h0");
 
 
     Sheet* EPSSheet                         = resultBook->addSheet(L"基本每股收益");
@@ -213,7 +212,7 @@ void MainWindow::on_mergePushButton_clicked()
     depositTurnoverRatioSheet->writeStr(1, 0, L"股票\\时间");
     netProfitMarginSheet->writeStr(1, 0, L"股票\\时间");
 
-    QDate startDate(2006, 11, 1);
+    QDate startDate(1990, 1, 1);
     //QDate endDate = QDate::currentDate();
     QDate endDate(2017, 10, 1);
     QStringList dateList = generateDateList(startDate, endDate);
@@ -243,6 +242,12 @@ void MainWindow::on_mergePushButton_clicked()
         //qDebug() << dateList.at(i) << " - " << colIndexMap[dateList.at(i)];
     }
 
+    QMapIterator<QString, int> iter(colIndexMap);
+    while(iter.hasNext()) {
+        iter.next();
+        printf("[%s] - %d\n", iter.key().toStdString().c_str(), iter.value() );
+    }
+
     for (int i = 0; i < excelFileList.size(); ++i) {
 //        if (i > 0)
 //            break;
@@ -254,10 +259,11 @@ void MainWindow::on_mergePushButton_clicked()
         }
 
         QString stockCode = excelFileInfo.baseName().left(6);
+        qDebug() << "Stock Code: " << stockCode;
 
         // Read Excel
         Book* sourceBook = xlCreateBook();
-        sourceBook->setKey(L"Halil Kural", L"mac-2723210a07c4e90162b26966a8jcdboe");
+        sourceBook->setKey(L"jae", L"windows-202220060ec5e50766b8646dacy5z7h0");
         if (sourceBook->load(excelFileList.at(0).toStdWString().c_str()) ) {
             Sheet* sourceSheet = sourceBook->getSheet(0);
             if (sourceSheet) {
@@ -265,9 +271,10 @@ void MainWindow::on_mergePushButton_clicked()
                 QMap<int, QString> dateColIndexMap;
 
                 for (int row = sourceSheet->firstRow(); row < sourceSheet->lastRow(); ++row) {
-                    qDebug() << "Row No. " << row;
+                    //qDebug() << "Row No. " << row;
+                    std::wcout << L"Row No. " << row << std::endl;
 
-                    Sheet* operatorSheet;
+                    Sheet* operatorSheet = NULL;
                     int curRow = 0;
                     if (row < 2) {
                         if (row == 0) {
@@ -304,44 +311,39 @@ void MainWindow::on_mergePushButton_clicked()
                         }
                         else if (row == 11) {
                             operatorSheet = ROEDitionSheet;
-                            break;
                         }
                         else if (row == 12) {
                             operatorSheet = debtAssetRatioSheet;
-                            break;
                         }
                         else if (row == 13) {
                             operatorSheet = shareCapitalReserveSheet;
-                            break;
                         }
                         else if (row == 14) {
                             operatorSheet = retainedEarningsPerShareSheet;
-                            break;
                         }
                         else if (row == 15) {
                             operatorSheet = OCFPSSheet;
-                            break;
                         }
                         else if (row == 16) {
                             operatorSheet = grossProfitRatioSheet;
-                            break;
                         }
                         else if (row == 17) {
                             operatorSheet = depositTurnoverRatioSheet;
-                            break;
                         }
                         else if (row == 18) {
                             operatorSheet = netProfitMarginSheet;
-                            break;
                         }
                         else {
                             break;
                         }
 
                         curRow = operatorSheet->lastRow();
-                        qDebug() << "Current Row NO. " << curRow;
+                        //qDebug() << "Current Row NO. " << curRow;
 
                         // write the stock code
+                        //qDebug() << "Stock Code 2" << stockCode;
+                        //std::wcout << L"Test" << std::endl;
+                        std::wcout << L"stock code " << stockCode.toStdWString().c_str() << std::endl;
                         operatorSheet->writeStr(curRow, 0, stockCode.toStdWString().c_str());
                     }
 
@@ -351,11 +353,11 @@ void MainWindow::on_mergePushButton_clicked()
                         }
 
                         CellType cellType = sourceSheet->cellType(row, col);
-                        std::wcout << "(" << row << ", " << col << ") = ";
-                        QString content;
+                        //std::wcout << "(" << row << ", " << col << ") = ";
+                        QString content = NULL;
                         if (sourceSheet->isFormula(row, col)) {
                             const wchar_t* s = sourceSheet->readFormula(row, col);
-                            std::wcout << (s ? s : L"null") << " [formula]";
+                            //std::wcout << (s ? s : L"null") << " [formula]";
                         }
                         else {
                             switch(cellType) {
@@ -363,35 +365,37 @@ void MainWindow::on_mergePushButton_clicked()
                                 case CELLTYPE_NUMBER:
                                 {
                                     double d = sourceSheet->readNum(row, col);
-                                    std::wcout << d << " [number]";
+                                    //std::wcout << d << " [number]";
                                     content = QString::number(d);
                                     break;
                                 }
                                 case CELLTYPE_STRING:
                                 {
                                     const wchar_t* s = sourceSheet->readStr(row, col);
-                                    std::wcout << (s ? s : L"null") << " [string]";
+                                    //std::wcout << (s ? s : L"null") << " [string]";
                                     content = QString::fromStdWString(s);
                                     break;
                                 }
                                 case CELLTYPE_BOOLEAN:
                                 {
                                     bool b = sourceSheet->readBool(row, col);
-                                    std::wcout << (b ? "true" : "false") << " [boolean]";
-//                                    std::cout << (b ? "true" : "false") << " [boolean]";
+                                    //std::wcout << (b ? "true" : "false") << " [boolean]";
                                     break;
                                 }
                                 case CELLTYPE_BLANK: std::wcout << "[blank]"; break;
                                 case CELLTYPE_ERROR: std::wcout << "[error]"; break;
                             }
                         }
-                        std::wcout << std::endl;
+                        //std::wcout << std::endl;
 
                         if (row == 1) {
                             dateColIndexMap[col] = content;
                         }
                         else {
                             int curCol = colIndexMap[ dateColIndexMap[col] ];
+                            if (curCol == 0) {
+                                printf("Error!!! Col: %d - %s\n", col, dateColIndexMap[col].toStdString().c_str());
+                            }
                             if (rxNum.exactMatch(content)) {
                                 operatorSheet->writeNum(curRow, curCol, content.toDouble());
                             }
