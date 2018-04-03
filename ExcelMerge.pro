@@ -51,4 +51,7 @@ else{
     QMAKE_POST_LINK +=$$quote(cmd /c copy /y ..\..\Libxl\bin64\libxl.dll .\debug)
 }
 
+RESOURCES += \
+    image.qrc
+
 
