@@ -242,11 +242,6 @@ void MainWindow::on_mergePushButton_clicked()
         //qDebug() << dateList.at(i) << " - " << colIndexMap[dateList.at(i)];
     }
 
-    QMapIterator<QString, int> iter(colIndexMap);
-    while(iter.hasNext()) {
-        iter.next();
-        printf("[%s] - %d\n", iter.key().toStdString().c_str(), iter.value() );
-    }
 
     for (int i = 0; i < excelFileList.size(); ++i) {
 //        if (i > 0)
@@ -259,12 +254,12 @@ void MainWindow::on_mergePushButton_clicked()
         }
 
         QString stockCode = excelFileInfo.baseName().left(6);
-        qDebug() << "Stock Code: " << stockCode;
+        printf("Stock Code: %s\n", stockCode.toStdString().c_str());
 
         // Read Excel
         Book* sourceBook = xlCreateBook();
         sourceBook->setKey(L"jae", L"windows-202220060ec5e50766b8646dacy5z7h0");
-        if (sourceBook->load(excelFileList.at(0).toStdWString().c_str()) ) {
+        if (sourceBook->load(excelFileList.at(i).toStdWString().c_str()) ) {
             Sheet* sourceSheet = sourceBook->getSheet(0);
             if (sourceSheet) {
 
@@ -393,9 +388,6 @@ void MainWindow::on_mergePushButton_clicked()
                         }
                         else {
                             int curCol = colIndexMap[ dateColIndexMap[col] ];
-                            if (curCol == 0) {
-                                printf("Error!!! Col: %d - %s\n", col, dateColIndexMap[col].toStdString().c_str());
-                            }
                             if (rxNum.exactMatch(content)) {
                                 operatorSheet->writeNum(curRow, curCol, content.toDouble());
                             }
@@ -419,36 +411,9 @@ void MainWindow::on_mergePushButton_clicked()
     }
 
 
-//    Sheet* sheet = book->addSheet(L"基本每股收益");
-//
-//    printf("TestC %s", testC.toStdString().c_str());
-//
-//    sheet->writeStr(2, 1, L"Hello, World !");
-//    sheet->writeStr(2, 2, testC.toStdWString().c_str());
-//
-//    sheet->writeStr(3,1, L"中文");
-//    sheet->writeNum(4, 1, 1000);
-//    sheet->writeNum(5, 1, 2000);
-//
-//    Font* font = book->addFont();
-//    font->setColor(COLOR_RED);
-//    font->setBold(true);
-//    Format* boldFormat = book->addFormat();
-//    boldFormat->setFont(font);
-//    sheet->writeFormula(6, 1, L"SUM(B5:B6)", boldFormat);
-//
-//    Format* dateFormat = book->addFormat();
-//    dateFormat->setNumFormat(NUMFORMAT_DATE);
-//    sheet->writeNum(8, 1, book->datePack(2011, 7, 20), dateFormat);
-//
-//    sheet->setCol(1, 1, 12);
-
     resultBook->save(L"report.xls");
 
     resultBook->release();
-
-    //ui->pushButton->setText("Please wait...");
-    //ui->pushButton->setEnabled(false);
 
 #ifdef _WIN32
 
@@ -464,6 +429,4 @@ void MainWindow::on_mergePushButton_clicked()
 
 #endif
 
-    //ui->pushButton->setText("Generate Excel Report");
-    //ui->pushButton->setEnabled(true);
 }
